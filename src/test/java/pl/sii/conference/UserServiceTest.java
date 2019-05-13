@@ -3,14 +3,20 @@ package pl.sii.conference;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import pl.sii.conference.domain.model.User;
+import pl.sii.conference.domain.repository.UserRepository;
 import pl.sii.conference.service.UserService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
-    UserService userService = new UserService();
-    User user = new User(1L, "Jan Kowalski", "kowalski@gmail.com");
+    @Mock
+    private UserRepository userRepository;
+    @InjectMocks
+    private UserService userService;
+    private User user = new User(1L, "Jan Kowalski", "kowalski@gmail.com");
 
     @Test
     public void checkIfUserExists_UserExists(){
