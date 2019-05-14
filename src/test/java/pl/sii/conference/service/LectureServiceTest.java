@@ -1,4 +1,4 @@
-package pl.sii.conference;
+package pl.sii.conference.service;
 
 import org.junit.Assert;
 import org.junit.Test;
