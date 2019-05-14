@@ -13,24 +13,40 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public void submitUser(String login, String email) {
+    public void userLogIn(String login, String email) {
         if (checkIfUserExists(login, email)) {
             //TODO: login user
         } else {
-            //TODO: check for existing login with wrong email
-            addUser(login, email);
+            //TODO: change into notification
+            throw new RuntimeException("You need to register first!!!");
         }
     }
 
-    public User addUser(String login, String email) {
+    public void registerUser(String login, String email) {
+        if(!checkIfUserExists(login, email)) {
+            addUser(login, email);
+        } else if (checkIfLoginExists(login)) {
+            //TODO: change into notification
+            throw new RuntimeException("Inserted login is already taken!!!");
+        } else {
+            //TODO: change into notification
+            throw new RuntimeException("User already exists!!!");
+        }
+    }
+
+    protected boolean checkIfLoginExists(String login) {
+        Optional<User> user = userRepository.findUserByLogin(login);
+        return user.isPresent();
+    }
+
+    protected void addUser(String login, String email) {
         User user = new User();
         user.setLogin(login);
         user.setEmail(email);
-        user = userRepository.save(user);
-        return user;
+        userRepository.save(user);
     }
 
-    public boolean checkIfUserExists(String login, String email) {
+    protected  boolean checkIfUserExists(String login, String email) {
         Optional<User> user = userRepository.findUserByLoginAndEmail(login, email);
         return user.isPresent();
     }
