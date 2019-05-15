@@ -29,6 +29,11 @@ public class Reservation {
     @ManyToOne
     private User user;
 
+    @NotNull
+    @Min(1)
+    @Max(4)
+    private Integer timeSlotId;
+
 
 
 
