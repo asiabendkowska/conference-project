@@ -2,9 +2,6 @@ package pl.sii.conference.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.sii.conference.exception.DuplicateLoginRegistrationException;
-import pl.sii.conference.exception.DuplicateUserRegistrationException;
-import pl.sii.conference.exception.UserNotFoundException;
 import pl.sii.conference.view.UserSessionDetails;
 import pl.sii.conference.domain.model.User;
 import pl.sii.conference.domain.repository.UserRepository;
@@ -18,57 +15,45 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserSessionDetails userSessionDetails;
 
-    public void userLogIn(String login, String email) throws UserNotFoundException {
-        User user = getUser(login, email).orElseThrow(() -> new UserNotFoundException("You need to register first!"));
-        userSessionDetails.setLoggedIn(true);
-        userSessionDetails.setUser(user);
+    public boolean userLogIn(String login, String email) {
+        Optional<User> userOptional = getUser(login, email);
+        if (userOptional.isPresent()) {
+            userSessionDetails.setLoggedIn(true);
+            User user = userOptional.get();
+            userSessionDetails.setUser(user);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public void registerUser(String login, String email) throws DuplicateUserRegistrationException, DuplicateLoginRegistrationException {
-        if (checkIfLoginExists(login)){
-            String message;
-            if (checkIfUserExists(login, email)) {
-                //TODO: is this if really needed?
-                throw new DuplicateUserRegistrationException("User already exists!");
+    public RegistrationStatus registerUser(String login, String email) {
+        Optional<User> userOptional = getUser(login);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getEmail().equals(email)) {
+                return RegistrationStatus.DUPLICATEUSER;
             } else {
-                throw new DuplicateLoginRegistrationException("Inserted login is already taken!");
+                return RegistrationStatus.DUPLICATELOGIN;
             }
         } else {
             addUser(login, email);
+            return RegistrationStatus.SUCCESS;
         }
-
-        /*if(!checkIfUserExists(login, email)) {
-            addUser(login, email);
-        } else if (checkIfLoginExists(login)) {
-            //TODO: change into notification
-            Notification.show("Inserted login is already taken!");
-            //throw new RuntimeException("Inserted login is already taken!");
-        } else {
-            //TODO: change into notification
-            Notification.show("User already exists!");
-            //throw new RuntimeException("User already exists!");
-        }*/
     }
-
-    void addUser(String login, String email) {
+    protected void addUser(String login, String email) {
         User user = new User();
         user.setLogin(login);
         user.setEmail(email);
         userRepository.save(user);
     }
 
-    Optional<User> getUser(String login, String email) {
+    private Optional<User> getUser(String login, String email) {
         return userRepository.findUserByLoginAndEmail(login, email);
     }
 
-    boolean checkIfLoginExists(String login) {
-        Optional<User> user = userRepository.findUserByLogin(login);
-        return user.isPresent();
-    }
-
-    boolean checkIfUserExists(String login, String email) {
-        Optional<User> user = userRepository.findUserByLoginAndEmail(login, email);
-        return user.isPresent();
+    private Optional<User> getUser(String login) {
+        return userRepository.findUserByLogin(login);
     }
 
 }
