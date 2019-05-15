@@ -11,7 +11,6 @@ public class LectureService {
 
     private static List<Lecture> lectureList = new ArrayList<>(12);
 
-
     static {
         lectureList.add(new Lecture(1, "React", 1, 1));
         lectureList.add((new Lecture(2, "Angular", 2,1 )));
