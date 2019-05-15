@@ -36,14 +36,13 @@ public class ReservationService {
         }
     }
 
-    /*public boolean removeReservation(User user, Integer lectureId) {
-        reservationRepository.removeReservationByUserAnAndLectureId(user, lectureId);
-        return true;
+    public void removeReservation(Long reservationId) {
+        reservationRepository.deleteById(reservationId);
     }
 
-    public List getUserReservationList(User user) {
-        return new ArrayList();
-    }*/
+    public List<Reservation> getUserReservationList(User user) {
+        return reservationRepository.findAllByUser(user);
+    }
 
     private int getLectureRemainingCapacity(Integer lectureId) {
         Integer seatNumber = reservationRepository.countByLectureId(lectureId);
