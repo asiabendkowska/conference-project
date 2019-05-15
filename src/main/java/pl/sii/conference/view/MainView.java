@@ -7,9 +7,7 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.sii.conference.domain.model.Lecture;
-import pl.sii.conference.service.LectureService;
-import pl.sii.conference.service.ReservationService;
-import pl.sii.conference.service.UserService;
+import pl.sii.conference.service.*;
 
 import java.util.List;
 
@@ -26,6 +24,9 @@ public class MainView extends UI {
 
     @Autowired
     private UserSessionDetails userSessionDetails;
+
+    @Autowired
+    private ReservationService reservationService;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -48,11 +49,11 @@ public class MainView extends UI {
 
         if (userSessionDetails.isLoggedIn()) {
             //TODO: add view when logged in
-            verticalLayout.addComponent(new Label( userSessionDetails.getLogin() + " is logged in!"));
+            verticalLayout.addComponent(new Label( userSessionDetails.getUser().getLogin() + " is logged in!"));
         } else {
             addLoginToView(verticalLayout);
-            verticalLayout.addComponent(new Label("If you don't have account please register"));
-            addRegistrationToView(verticalLayout);
+            verticalLayout.addComponent(new Label("If you don't have account please register:"));
+            addUserRegistrationToView(verticalLayout);
         }
 
         setContent(verticalLayout);
@@ -68,8 +69,16 @@ public class MainView extends UI {
         emailField.setValue("user email");
 
         Button loginButton = new Button("Log In", clickEvent -> {
-            userService.userLogIn(loginField.getValue(), emailField.getValue());
-            Page.getCurrent().reload();});
+            try {
+                if (userService.userLogIn(loginField.getValue(), emailField.getValue())) {
+                    Page.getCurrent().reload();
+                } else {
+                    Notification.show("You need to register first!");
+                }
+            } catch (Exception e) {
+                Notification.show(e.getMessage());
+            }
+        });
         loginButton.addStyleName("primary");
 
         loginHorizontalLayout.addComponent(loginField);
@@ -79,7 +88,7 @@ public class MainView extends UI {
         verticalLayout.addComponent(loginHorizontalLayout);
     }
 
-    private void addRegistrationToView(VerticalLayout verticalLayout) {
+    private void addUserRegistrationToView(VerticalLayout verticalLayout) {
         HorizontalLayout registerHorizontalLayout = new HorizontalLayout();
 
         TextField loginRegisterField = new TextField();
@@ -89,8 +98,23 @@ public class MainView extends UI {
         emailRegisterField.setValue("user email");
 
         Button registerButton = new Button("Register", clickEvent -> {
-            userService.registerUser(loginRegisterField.getValue(), emailRegisterField.getValue());
-            Notification.show("register successful");});
+            try {
+                RegistrationStatus status = userService.registerUser(loginRegisterField.getValue(), emailRegisterField.getValue());
+                switch (status) {
+                    case SUCCESS:
+                        Notification.show("User registration successful!");
+                        break;
+                    case DUPLICATELOGIN:
+                        Notification.show("Inserted login is already taken!");
+                        break;
+                    case DUPLICATEUSER:
+                        Notification.show("User already exists!");
+                        break;
+                }
+            } catch (Exception e) {
+                Notification.show(e.getMessage());
+            }
+        });
         registerButton.addStyleName("primary");
 
         registerHorizontalLayout.addComponent(loginRegisterField);
@@ -123,7 +147,28 @@ public class MainView extends UI {
     private void addLecturesToGrid(GridLayout gridLayout) {
         List<Lecture> lectureList = lectureService.getAllLectures();
         for(Lecture lecture : lectureList) {
-          Button quietButton = new Button(lecture.getTitle());
+          Button quietButton = new Button(lecture.getTitle(), clickEvent -> {
+              if (userSessionDetails.isLoggedIn()) {
+                  try {
+                      ReservationStatus status = reservationService.makeReservation(userSessionDetails.getUser(), lecture);
+                      switch (status) {
+                          case SUCCESS:
+                              Notification.show("Lecture reservation successful!");
+                              break;
+                          case ALLSEATSTAKEN:
+                              Notification.show("All seats taken for this lecture!");
+                              break;
+                          case TIMESLOTTAKEN:
+                              Notification.show("You cannot have multiple reservations in the same time slot!");
+                              break;
+                      }
+                  } catch (Exception e) {
+                      Notification.show(e.getMessage());
+                  }
+              } else {
+                  Notification.show("You need to be logged in before making reservations!");
+              }
+          });
           quietButton.addStyleName("quiet");
           gridLayout.addComponent(quietButton, lecture.getCategoryId(), lecture.getTimeSlotId());
         }
