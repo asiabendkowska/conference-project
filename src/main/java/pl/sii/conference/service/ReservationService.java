@@ -7,8 +7,7 @@ import pl.sii.conference.domain.model.Reservation;
 import pl.sii.conference.domain.model.User;
 import pl.sii.conference.domain.repository.ReservationRepository;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -19,12 +18,13 @@ public class ReservationService {
     private final EmailService emailService;
     private static final int MAX_SEATS = 5;
 
-    public ReservationStatus makeReservation(User user, Lecture lecture) throws FileNotFoundException {
+    public ReservationStatus makeReservation(User user, Lecture lecture) throws IOException {
         if (!checkIfUserTimeSlotTaken(user, lecture.getTimeSlotId())) {
             if (getLectureRemainingCapacity(lecture.getId()) > 0) {
                 Reservation reservation = new Reservation();
                 reservation.setUser(user);
                 reservation.setLectureId(lecture.getId());
+                reservation.setTimeSlotId(lecture.getTimeSlotId());
                 reservationRepository.save(reservation);
                 emailService.sendConfirmation(user.getEmail(), lecture.getTitle());
                 return ReservationStatus.SUCCESS;
