@@ -50,6 +50,8 @@ public class MainView extends UI {
         if (userSessionDetails.isLoggedIn()) {
             //TODO: add view when logged in
             verticalLayout.addComponent(new Label( userSessionDetails.getUser().getLogin() + " is logged in!"));
+           changeEmail(verticalLayout);
+           seeYoursLecture(verticalLayout);
         } else {
             addLoginToView(verticalLayout);
             verticalLayout.addComponent(new Label("If you don't have account please register:"));
@@ -76,6 +78,7 @@ public class MainView extends UI {
                     Notification.show("You need to register first!");
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 Notification.show(e.getMessage());
             }
         });
@@ -112,6 +115,7 @@ public class MainView extends UI {
                         break;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 Notification.show(e.getMessage());
             }
         });
@@ -163,6 +167,7 @@ public class MainView extends UI {
                               break;
                       }
                   } catch (Exception e) {
+                      e.printStackTrace();
                       Notification.show(e.getMessage());
                   }
               } else {
@@ -173,4 +178,34 @@ public class MainView extends UI {
           gridLayout.addComponent(quietButton, lecture.getCategoryId(), lecture.getTimeSlotId());
         }
     }
+
+    private void changeEmail( VerticalLayout verticalLayout){
+        HorizontalLayout emailHorizontalLayout = new HorizontalLayout();
+        verticalLayout.addComponent(new Label( "Change your email:"));
+        TextField newEmailField = new TextField();
+        newEmailField.setValue("write new email");
+        Button emailButton = new Button("submit", clickEvent -> {
+            try {
+                userService.changeUserEmail(newEmailField.getValue());
+                Notification.show("Email changed.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Notification.show(e.getMessage());
+            }
+        });
+        emailButton.addStyleName("normal");
+        emailHorizontalLayout.addComponent(newEmailField);
+        emailHorizontalLayout.addComponent(emailButton);
+        verticalLayout.addComponent(emailHorizontalLayout);
+
+    }
+
+    private void seeYoursLecture(VerticalLayout verticalLayout){
+        Button linkButton = new Button("See yours lectures");
+        linkButton.addStyleName("link");
+        verticalLayout.addComponent(linkButton);
+
+    }
+
+
 }
