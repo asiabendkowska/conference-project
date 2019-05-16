@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import pl.sii.conference.domain.model.User;
 import pl.sii.conference.domain.repository.UserRepository;
-import pl.sii.conference.service.UserService;
+import pl.sii.conference.view.UserSessionDetails;
 
 import java.util.Optional;
 
@@ -21,59 +21,90 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserSessionDetails userSessionDetails;
+
     @InjectMocks
     private UserService userService;
-    private User user = new User(null, "Jan Kowalski", "kowalski@gmail.com");
+    private User existingUser = new User("joe", "joe@gmail.com");
 
-    @Before
+  @Before
     public void init() {
-        doReturn(Optional.of(user)).when(userRepository).findUserByLoginAndEmail(user.getLogin(), user.getEmail());
+        doReturn(Optional.of(existingUser)).when(userRepository).findUserByLoginAndEmail(existingUser.getLogin(), existingUser.getEmail());
+        doReturn(Optional.of(existingUser)).when(userRepository).findUserByLogin(existingUser.getLogin());
     }
 
     @Test
-    public void checkIfUserExists_UserExists(){
-        Assert.assertTrue(userService.checkIfUserExists(user.getLogin(), user.getEmail()));
+    public void testUserLogIn_GivenExistingUser_ExpectLoggedIn() {
+        User newUser = new User("joe", "joe@gmail.com");
+        boolean result = userService.userLogIn(newUser.getLogin(), newUser.getEmail());
+        Assert.assertTrue(result);
+        verify(userSessionDetails, times(1)).setLoggedIn(true);
+        verify(userSessionDetails, times(1)).setUser(newUser);
     }
 
     @Test
-    public void checkIfUserExists_WrongLogin(){
-        String login = "Test";
-        Assert.assertFalse(userService.checkIfUserExists(login, user.getEmail()));
+    public void testUserLogIn_GivenNotExistingUser_ExpectNotLoggedIn() {
+        User newUser = new User("tom", "tom@gmail.com");
+        boolean result = userService.userLogIn(newUser.getLogin(), newUser.getEmail());
+        Assert.assertFalse(result);
+        verify(userSessionDetails, times(0)).setLoggedIn(true);
+        verify(userSessionDetails, times(0)).setUser(newUser);
     }
 
     @Test
-    public void checkIfUserExists_WrongEmail(){
-        String email = "test";
-        Assert.assertFalse(userService.checkIfUserExists(user.getLogin(), email));
+    public void testUserLogIn_GivenExistingLoginAndNotExistingEmail_ExpectNotLoggedIn() {
+        User newUser = new User("joe", "tom@gmail.com");
+        boolean result = userService.userLogIn(newUser.getLogin(), newUser.getEmail());
+        Assert.assertFalse(result);
+        verify(userSessionDetails, times(0)).setLoggedIn(true);
+        verify(userSessionDetails, times(0)).setUser(newUser);
     }
 
     @Test
-    public void checkIfUserExists_EmptyEmail(){
-        String email = "";
-        Assert.assertFalse(userService.checkIfUserExists(user.getLogin(), email));
+    public void testRegisterUser_GivenNotExistingLoginAndEmail_ExpectSuccessStatus() {
+        User newUser = new User("tom", "tom@gmail.com");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        Assert.assertEquals(RegistrationStatus.SUCCESS, registrationStatus);
+        verify(userRepository, times(1)).save(newUser);
     }
 
     @Test
-    public void checkIfUserExists_EmptyLogin(){
-        String login = "";
-        Assert.assertFalse(userService.checkIfUserExists(login, user.getEmail()));
+    public void testRegisterUser_GivenNotExistingLoginAndExistingEmail_ExpectSuccessStatus() {
+        User newUser = new User("tom", "joe@gmail.com");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        Assert.assertEquals(RegistrationStatus.SUCCESS, registrationStatus);
+        verify(userRepository, times(1)).save(newUser);
     }
 
     @Test
-    public void addUser_CorrectValues(){
-        userService.addUser(user.getLogin(), user.getEmail());
-        verify(userRepository, times(1)).save(user);
+    public void testRegisterUser_GivenExistingLoginAndNotExistingEmail_ExpectDuplicateLoginStatus() {
+        User newUser = new User("joe", "tom@gmail.com");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        Assert.assertEquals(RegistrationStatus.DUPLICATELOGIN, registrationStatus);
+        verify(userRepository, times(0)).save(newUser);
     }
 
     @Test
-    public void addUser_WrongEmail(){
-        userService.addUser(user.getLogin(), "test");
-        verify(userRepository, times(0)).save(user);
+    public void testRegisterUser_GivenExistingLoginAndEmail_ExpectDuplicateUserStatus() {
+        User newUser = new User("joe", "joe@gmail.com");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        Assert.assertEquals(RegistrationStatus.DUPLICATEUSER, registrationStatus);
+        verify(userRepository, times(0)).save(newUser);
     }
 
     @Test
-    public void addUser_WrongLogin(){
-        userService.addUser("", user.getEmail());
-        verify(userRepository, times(0)).save(user);
+    public void testRegisterUser_GivenEmptyLogin_ExpectException() {
+        User newUser = new User("", "tom@gmail.com");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        verify(userRepository, times(0)).save(newUser);
     }
+
+    @Test
+    public void testRegisterUser_GivenEmptyEmail_ExpectException() {
+        User newUser = new User("tom", "");
+        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
+        verify(userRepository, times(0)).save(newUser);
+    }
+
 }

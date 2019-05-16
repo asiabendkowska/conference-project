@@ -24,7 +24,12 @@ public class User {
     @NotBlank
     private String login;
 
+    @NotBlank
     @Email
     private String email;
 
+    public User(@NotBlank String login, @NotBlank @Email String email) {
+        this.login = login;
+        this.email = email;
+    }
 }
