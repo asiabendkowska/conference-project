@@ -2,6 +2,8 @@ package pl.sii.conference.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.sii.conference.domain.model.Lecture;
 import pl.sii.conference.domain.model.Reservation;
 import pl.sii.conference.domain.model.User;
@@ -18,6 +20,7 @@ public class ReservationService {
     private final EmailService emailService;
     private static final int MAX_SEATS = 5;
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public ReservationStatus makeReservation(User user, Lecture lecture) throws IOException {
         if (!checkIfUserTimeSlotTaken(user, lecture.getTimeSlotId())) {
             if (getLectureRemainingCapacity(lecture.getId()) > 0) {
