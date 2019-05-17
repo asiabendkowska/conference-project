@@ -26,9 +26,10 @@ public class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
-    private User existingUser = new User("joe", "joe@gmail.com");
 
-  @Before
+    private final User existingUser = new User("joe", "joe@gmail.com");
+
+    @Before
     public void init() {
         doReturn(Optional.of(existingUser)).when(userRepository).findUserByLoginAndEmail(existingUser.getLogin(), existingUser.getEmail());
         doReturn(Optional.of(existingUser)).when(userRepository).findUserByLogin(existingUser.getLogin());
@@ -93,7 +94,7 @@ public class UserServiceTest {
         verify(userRepository, times(0)).save(newUser);
     }
 
-    @Test
+    /*@Test
     public void testRegisterUser_GivenEmptyLogin_ExpectException() {
         User newUser = new User("", "tom@gmail.com");
         RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
@@ -105,6 +106,25 @@ public class UserServiceTest {
         User newUser = new User("tom", "");
         RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
         verify(userRepository, times(0)).save(newUser);
+    }*/
+
+    @Test
+    public void testChangeUserEmail_GivenLoggedUser_ExpectEmailUpdated() {
+        String newEmail = "tom2@gmail.com";
+        User loggedUser = new User("tom", "tom@gmail.com");
+        User modifiedUser = new User("tom", newEmail);
+        doReturn(loggedUser).when(userSessionDetails).getUser();
+        doReturn(true).when(userSessionDetails).isLoggedIn();
+        userService.changeUserEmail(newEmail);
+        verify(userRepository, times(1)).save(modifiedUser);
+    }
+
+    @Test
+    public void testChangeUserEmail_GivenNotLoggedUser_ExpectEmailNotUpdated() {
+        doReturn(false).when(userSessionDetails).isLoggedIn();
+        String newEmail = "tom2@gmail.com";
+        userService.changeUserEmail(newEmail);
+        verify(userRepository, times(0)).save(any(User.class));
     }
 
 }

@@ -47,9 +47,11 @@ public class UserService {
     }
 
     public void changeUserEmail(@NotBlank @Email String newEmail) {
-        User user = userSessionDetails.getUser();
-        user.setEmail(newEmail);
-        userRepository.save(user);
+        if (userSessionDetails.isLoggedIn()) {
+            User user = userSessionDetails.getUser();
+            user.setEmail(newEmail);
+            userRepository.save(user);
+        }
     }
 
     private void addUser(String login, String email) {
