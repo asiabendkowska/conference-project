@@ -31,6 +31,13 @@ public class UserService {
         }
     }
 
+    public void userLogOut() {
+        if (userSessionDetails.isLoggedIn()) {
+            userSessionDetails.setUser(null);
+            userSessionDetails.setLoggedIn(false);
+        }
+    }
+
     public RegistrationStatus registerUser(@NotBlank String login, @NotBlank @Email String email) {
         Optional<User> userOptional = getUser(login);
         if (userOptional.isPresent()) {

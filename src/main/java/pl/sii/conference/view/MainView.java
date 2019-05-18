@@ -48,20 +48,17 @@ public class MainView extends UI {
         verticalLayout.addComponent(gridLayout);
 
         if (userSessionDetails.isLoggedIn()) {
-            //TODO: add view when logged in
-            verticalLayout.addComponent(new Label( userSessionDetails.getUser().getLogin() + " is logged in!"));
-           changeEmail(verticalLayout);
-           seeYoursLecture(verticalLayout);
+            addLoggedInSectionToView(verticalLayout);
         } else {
-            addLoginToView(verticalLayout);
+            addUserLoginSectionToView(verticalLayout);
             verticalLayout.addComponent(new Label("If you don't have account please register:"));
-            addUserRegistrationToView(verticalLayout);
+            addUserRegistrationSectionToView(verticalLayout);
         }
 
         setContent(verticalLayout);
     }
 
-    private void addLoginToView(VerticalLayout verticalLayout) {
+    private void addUserLoginSectionToView(VerticalLayout verticalLayout) {
         HorizontalLayout loginHorizontalLayout = new HorizontalLayout();
 
         TextField loginField = new TextField();
@@ -91,7 +88,7 @@ public class MainView extends UI {
         verticalLayout.addComponent(loginHorizontalLayout);
     }
 
-    private void addUserRegistrationToView(VerticalLayout verticalLayout) {
+    private void addUserRegistrationSectionToView(VerticalLayout verticalLayout) {
         HorizontalLayout registerHorizontalLayout = new HorizontalLayout();
 
         TextField loginRegisterField = new TextField();
@@ -179,7 +176,26 @@ public class MainView extends UI {
         }
     }
 
-    private void changeEmail( VerticalLayout verticalLayout){
+    private void addLoggedInSectionToView(VerticalLayout verticalLayout) {
+        addLoggedInInfoSection(verticalLayout);
+        addChangeEmailSection(verticalLayout);
+        addUserLecturesSection(verticalLayout);
+    }
+
+    private void addLoggedInInfoSection(VerticalLayout verticalLayout){
+        HorizontalLayout logInOutHorizontalLayout = new HorizontalLayout();
+        Button logOutButton = new Button("Log Out", clickEvent -> {
+            userService.userLogOut();
+            Page.getCurrent().reload();
+        } );
+        logOutButton.addStyleName("tiny");
+        logInOutHorizontalLayout.addComponent( new Label( userSessionDetails.getUser().getLogin() + " is logged in!" ));
+        logInOutHorizontalLayout.addComponent(logOutButton);
+        verticalLayout.addComponent(logInOutHorizontalLayout);
+
+    }
+
+    private void addChangeEmailSection(VerticalLayout verticalLayout){
         HorizontalLayout emailHorizontalLayout = new HorizontalLayout();
         verticalLayout.addComponent(new Label( "Change your email:"));
         TextField newEmailField = new TextField();
@@ -200,12 +216,11 @@ public class MainView extends UI {
 
     }
 
-    private void seeYoursLecture(VerticalLayout verticalLayout){
+    private void addUserLecturesSection(VerticalLayout verticalLayout){
         Button linkButton = new Button("See yours lectures");
         linkButton.addStyleName("link");
         verticalLayout.addComponent(linkButton);
 
     }
-
 
 }

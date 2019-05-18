@@ -127,4 +127,13 @@ public class UserServiceTest {
         verify(userRepository, times(0)).save(any(User.class));
     }
 
+    @Test
+    public void testUserLogOut_GivenLoggedInUser_ExpectLogOut() {
+        doReturn(true).when(userSessionDetails).isLoggedIn();
+        userService.userLogOut();
+        verify(userSessionDetails, times(1)).setLoggedIn(false);
+        verify(userSessionDetails, times(1)).setUser(null);
+
+    }
+
 }
