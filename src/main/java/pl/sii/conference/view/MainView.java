@@ -6,6 +6,8 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ComponentRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.sii.conference.domain.model.Lecture;
 import pl.sii.conference.domain.model.Reservation;
@@ -17,6 +19,8 @@ import java.util.List;
 @SpringUI
 @StyleSheet({"http://localhost:8080/styles.css"})
 public class MainView extends UI {
+
+    private static final Logger logger = LoggerFactory.getLogger(MainView.class);
 
     @Autowired
     private LectureService lectureService;
@@ -81,7 +85,7 @@ public class MainView extends UI {
                     Notification.show("You need to register first!");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Login failed!", e);
                 Notification.show(e.getMessage());
             }
         });
@@ -118,7 +122,7 @@ public class MainView extends UI {
                         break;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Registration failed!", e);
                 Notification.show(e.getMessage());
             }
         });
@@ -171,7 +175,7 @@ public class MainView extends UI {
                                 break;
                         }
                   } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.error("Reservation failed!", e);
                         Notification.show(e.getMessage());
                   }
                 } else {
@@ -192,8 +196,13 @@ public class MainView extends UI {
     private void addLoggedInInfoSection(VerticalLayout verticalLayout){
         HorizontalLayout logInOutHorizontalLayout = new HorizontalLayout();
         Button logOutButton = new Button("Log Out", clickEvent -> {
-            userService.userLogOut();
-            Page.getCurrent().reload();
+            try {
+                userService.userLogOut();
+                Page.getCurrent().reload();
+            } catch (Exception e) {
+                logger.error("LogOut failed!", e);
+                Notification.show(e.getMessage());
+            }
         } );
         logOutButton.addStyleName("tiny");
         logInOutHorizontalLayout.addComponent( new Label( userSessionDetails.getUser().getLogin() + " is logged in!" ));
@@ -212,7 +221,7 @@ public class MainView extends UI {
                 userService.changeUserEmail(newEmailField.getValue());
                 Notification.show("Email changed.");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Changing email failed!", e);
                 Notification.show(e.getMessage());
             }
         });
@@ -236,8 +245,13 @@ public class MainView extends UI {
 
     private Button addReservationRemovalButton(Long reservationId) {
         Button removeReservationButton = new Button("Remove", clickEvent -> {
-            reservationService.removeReservation(reservationId);
-            userReservationsGrid.setItems(reservationService.getUserReservationList(userSessionDetails.getUser()));
+            try {
+                reservationService.removeReservation(reservationId);
+                userReservationsGrid.setItems(reservationService.getUserReservationList(userSessionDetails.getUser()));
+            } catch (Exception e) {
+                logger.error("Reservation removal failed!", e);
+                Notification.show(e.getMessage());
+            }
         });
         removeReservationButton.setStyleName("tiny");
         return removeReservationButton;
