@@ -5,8 +5,10 @@ import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ComponentRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.sii.conference.domain.model.Lecture;
+import pl.sii.conference.domain.model.Reservation;
 import pl.sii.conference.service.*;
 
 import java.util.List;
@@ -28,8 +30,12 @@ public class MainView extends UI {
     @Autowired
     private ReservationService reservationService;
 
+    private Grid<Reservation> userReservationsGrid = new Grid<>();
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+        getPage().setTitle("IT Conference");
+
         VerticalLayout verticalLayout = new VerticalLayout();
 
         verticalLayout.addComponent(new Label("IT CONFERENCE"));
@@ -148,38 +154,39 @@ public class MainView extends UI {
     private void addLecturesToGrid(GridLayout gridLayout) {
         List<Lecture> lectureList = lectureService.getAllLectures();
         for(Lecture lecture : lectureList) {
-          Button quietButton = new Button(lecture.getTitle(), clickEvent -> {
-              if (userSessionDetails.isLoggedIn()) {
-                  try {
-                      ReservationStatus status = reservationService.makeReservation(userSessionDetails.getUser(), lecture);
-                      switch (status) {
-                          case SUCCESS:
-                              Notification.show("Lecture reservation successful!");
-                              break;
-                          case ALLSEATSTAKEN:
-                              Notification.show("All seats taken for this lecture!");
-                              break;
-                          case TIMESLOTTAKEN:
-                              Notification.show("You cannot have multiple reservations in the same time slot!");
-                              break;
-                      }
+            Button quietButton = new Button(lecture.getTitle(), clickEvent -> {
+                if (userSessionDetails.isLoggedIn()) {
+                    try {
+                        ReservationStatus status = reservationService.makeReservation(userSessionDetails.getUser(), lecture);
+                        switch (status) {
+                            case SUCCESS:
+                                userReservationsGrid.setItems(reservationService.getUserReservationList(userSessionDetails.getUser()));
+                                Notification.show("Lecture reservation successful!");
+                                break;
+                            case ALLSEATSTAKEN:
+                                Notification.show("All seats taken for this lecture!");
+                                break;
+                            case TIMESLOTTAKEN:
+                                Notification.show("You cannot have multiple reservations in the same time slot!");
+                                break;
+                        }
                   } catch (Exception e) {
-                      e.printStackTrace();
-                      Notification.show(e.getMessage());
+                        e.printStackTrace();
+                        Notification.show(e.getMessage());
                   }
-              } else {
-                  Notification.show("You need to be logged in before making reservations!");
-              }
-          });
-          quietButton.addStyleName("quiet");
-          gridLayout.addComponent(quietButton, lecture.getCategoryId(), lecture.getTimeSlotId());
+                } else {
+                    Notification.show("You need to be logged in before making reservations!");
+                }
+            });
+            quietButton.addStyleName("quiet");
+            gridLayout.addComponent(quietButton, lecture.getCategoryId(), lecture.getTimeSlotId());
         }
     }
 
     private void addLoggedInSectionToView(VerticalLayout verticalLayout) {
         addLoggedInInfoSection(verticalLayout);
         addChangeEmailSection(verticalLayout);
-        addUserLecturesSection(verticalLayout);
+        addUserReservationsSection(verticalLayout);
     }
 
     private void addLoggedInInfoSection(VerticalLayout verticalLayout){
@@ -197,7 +204,7 @@ public class MainView extends UI {
 
     private void addChangeEmailSection(VerticalLayout verticalLayout){
         HorizontalLayout emailHorizontalLayout = new HorizontalLayout();
-        verticalLayout.addComponent(new Label( "Change your email:"));
+        verticalLayout.addComponent(new Label( "Change email:"));
         TextField newEmailField = new TextField();
         newEmailField.setValue("write new email");
         Button emailButton = new Button("submit", clickEvent -> {
@@ -216,11 +223,24 @@ public class MainView extends UI {
 
     }
 
-    private void addUserLecturesSection(VerticalLayout verticalLayout){
-        Button linkButton = new Button("See yours lectures");
-        linkButton.addStyleName("link");
-        verticalLayout.addComponent(linkButton);
+    private void addUserReservationsSection(VerticalLayout verticalLayout){
+        Label myReservations = new Label("My reservations:");
+        verticalLayout.addComponent(myReservations);
+        userReservationsGrid.setItems(reservationService.getUserReservationList(userSessionDetails.getUser()));
+        userReservationsGrid.addColumn(Reservation::getLectureTitle);
+        userReservationsGrid.addColumn(reservation -> addReservationRemovalButton(reservation.getId()), new ComponentRenderer());
+        userReservationsGrid.removeHeaderRow(0);
+        userReservationsGrid.addStyleName("reservations-grid");
+        verticalLayout.addComponent(userReservationsGrid);
+    }
 
+    private Button addReservationRemovalButton(Long reservationId) {
+        Button removeReservationButton = new Button("Remove", clickEvent -> {
+            reservationService.removeReservation(reservationId);
+            userReservationsGrid.setItems(reservationService.getUserReservationList(userSessionDetails.getUser()));
+        });
+        removeReservationButton.setStyleName("tiny");
+        return removeReservationButton;
     }
 
 }

@@ -5,10 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import javax.validation.constraints.*;
 
 @Data
 @Entity
@@ -25,6 +22,9 @@ public class Reservation {
     @Max(12)
     private Integer lectureId;
 
+    @NotBlank
+    private String lectureTitle;
+
     @NotNull
     @ManyToOne
     private User user;
@@ -33,8 +33,5 @@ public class Reservation {
     @Min(1)
     @Max(4)
     private Integer timeSlotId;
-
-
-
 
 }

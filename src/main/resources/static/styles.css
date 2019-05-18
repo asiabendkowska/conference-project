@@ -4,3 +4,7 @@
     border-width: 1px;
     padding: 5px;
 }
+
+.reservations-grid .v-grid-tablewrapper{
+    border: none !important;
+}

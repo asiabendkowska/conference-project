@@ -27,6 +27,7 @@ public class ReservationService {
                 Reservation reservation = new Reservation();
                 reservation.setUser(user);
                 reservation.setLectureId(lecture.getId());
+                reservation.setLectureTitle(lecture.getTitle());
                 reservation.setTimeSlotId(lecture.getTimeSlotId());
                 reservationRepository.save(reservation);
                 emailService.sendConfirmation(user.getEmail(), lecture.getTitle());

@@ -32,7 +32,7 @@ public class ReservationServiceTest {
 
     private User existingUser = new User("joe", "joe@gmail.com");
     private Lecture lecture = new Lecture(1, "React", 1, 1);
-    private Reservation reservation = new Reservation(null, 1, existingUser, 1);
+    private Reservation reservation = new Reservation(null, 1, "React", existingUser, 1);
 
     @Test
     public void testMakeReservation_GivenCorrectData_ExpectSuccessReservation()throws IOException {
@@ -73,7 +73,7 @@ public class ReservationServiceTest {
     public void testGetUserReservationList_GivenTwoReservationsForExistingUser_ExpectBothReservationsReturned() throws IOException {
         List<Reservation> reservationList = new ArrayList<>();
         reservationList.add(reservation);
-        reservationList.add(new Reservation(null, 2, existingUser, 2));
+        reservationList.add(new Reservation(null, 2, "Angular", existingUser, 2));
         doReturn(reservationList).when(reservationRepository).findAllByUser(existingUser);
         List<Reservation> userReservationList = reservationService.getUserReservationList(existingUser);
         Assert.assertEquals(2, userReservationList.size());
