@@ -1,11 +1,13 @@
 # conference-project
 
 About:
+
 Application for IT conference with possibility to see schedule, manage reservations and users.
 
 Prerequisites:
-Jdk 1.8
-Maven 3.5
+
+- Jdk 1.8
+- Maven 3.5
 
 Short instructions:
 
