@@ -17,5 +17,8 @@ mvn clean install
 2. Run:
 java -jar target\conference-1.0.0.jar
 
-3. Check e-mail confirmation file at:
+3. Open in browser:
+http://localhost:8080/
+
+4. Check e-mail confirmation file at:
 target\confirmation.log
