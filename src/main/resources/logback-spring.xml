@@ -16,7 +16,10 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <logger name="pl.sii.conference" level="INFO" />
+    <logger name="com.vaadin" level="ERROR" />
+
+    <root level="WARN">
         <appender-ref ref="Console" />
         <appender-ref ref="File" />
     </root>

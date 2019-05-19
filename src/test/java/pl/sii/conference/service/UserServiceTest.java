@@ -94,20 +94,6 @@ public class UserServiceTest {
         verify(userRepository, times(0)).save(newUser);
     }
 
-    /*@Test
-    public void testRegisterUser_GivenEmptyLogin_ExpectException() {
-        User newUser = new User("", "tom@gmail.com");
-        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
-        verify(userRepository, times(0)).save(newUser);
-    }
-
-    @Test
-    public void testRegisterUser_GivenEmptyEmail_ExpectException() {
-        User newUser = new User("tom", "");
-        RegistrationStatus registrationStatus = userService.registerUser(newUser.getLogin(), newUser.getEmail());
-        verify(userRepository, times(0)).save(newUser);
-    }*/
-
     @Test
     public void testChangeUserEmail_GivenLoggedUser_ExpectEmailUpdated() {
         String newEmail = "tom2@gmail.com";

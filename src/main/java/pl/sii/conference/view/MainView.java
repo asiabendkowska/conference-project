@@ -6,33 +6,26 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ComponentRenderer;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import pl.sii.conference.domain.model.Lecture;
 import pl.sii.conference.domain.model.Reservation;
 import pl.sii.conference.service.*;
 
 import java.util.List;
 
-
 @SpringUI
+@RequiredArgsConstructor
 @StyleSheet({"http://localhost:8080/styles.css"})
 public class MainView extends UI {
 
     private static final Logger logger = LoggerFactory.getLogger(MainView.class);
 
-    @Autowired
-    private LectureService lectureService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserSessionDetails userSessionDetails;
-
-    @Autowired
-    private ReservationService reservationService;
+    private final LectureService lectureService;
+    private final UserService userService;
+    private final UserSessionDetails userSessionDetails;
+    private final ReservationService reservationService;
 
     private Grid<Reservation> userReservationsGrid = new Grid<>();
 
